@@ -24,6 +24,7 @@ public:
         visited = false;
         depth = 0.0;
         path_cost = 0.0;
+        path_parent = nullptr;
     }
 
     bool visited;

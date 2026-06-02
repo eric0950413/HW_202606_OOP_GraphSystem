@@ -146,8 +146,8 @@ void GRAPH_SYSTEM::createDefaultGraph( )
     cout << "here"<< endl;
     reset( );
 
-    float offset_x = 90.;
-    float offset_z = 15.;
+    float offset_x = 65.;
+    float offset_z = 70.;
 
     int n_0 = addNode(offset_x + 0.0, 0.0, offset_z + 0.0 );
     cout << "n_0:"<< n_0 << endl;
@@ -175,8 +175,8 @@ void GRAPH_SYSTEM::createRandomGraph_DoubleCircles(int n)
     float dz = 5.0;
     float r = 15; // radius
     float d = 10; // layer distance
-    float offset_x = 90.;
-    float offset_z = 15.;
+    float offset_x = 65.;
+    float offset_z = 70.;
     //-------------------------------------------------------
     // modify and add your code heres
     float outerRadius = r + d;
@@ -225,8 +225,8 @@ void GRAPH_SYSTEM::createNet_Circular( int n, int num_layers )
     float dz = 5.0;
     float r = 5; // radius
     float d = 5; // layer distance 
-    float offset_x = 90.;
-    float offset_z = 30.;
+    float offset_x = 65.;
+    float offset_z = 70.;
 
     //-------------------------------------------------------
     // modify and add your code heres
@@ -265,8 +265,8 @@ void GRAPH_SYSTEM::createNet_Square( int n, int num_layers )
     float dz = 5.0;
     float r = 5; // radius
     float d = 5; // layer distance 
-    float offset_x = 5.;
-    float offset_z = 5.;
+    float offset_x = 65.;
+    float offset_z = 70.;
 
     //-------------------------------------------------------
     // modify and add your code heres
@@ -310,8 +310,8 @@ void GRAPH_SYSTEM::createNet_RadicalCircular( int n ) {
 
     reset( );
 
-    float offset_x = 90.0;
-    float offset_z = 15.0;
+    float offset_x = 65.0;
+    float offset_z = 70.0;
 
     const float RADIUS = 15;
 
@@ -838,32 +838,36 @@ void GRAPH_SYSTEM::computeShortestPath()
     //-------------------------------------------------------
 }
 
-void GRAPH_SYSTEM::handleKeyPressedEvent( unsigned char key )
+void GRAPH_SYSTEM::handleKeyPressedEvent(unsigned char key)
 {
-    
-    switch( key ) {
+
+    switch (key) {
     case 127: // delete
         mFlgAutoNodeDeletion = false;
-        deleteSelectedNode( );
+        deleteSelectedNode();
         break;
     case '1':
+        mNumPoints_DoubleCircles = 0;
         mFlgAutoNodeDeletion = false;
-        createDefaultGraph( );
+        createDefaultGraph();
         mSelectedNode = 0;
         break;
     case '2':
+        mNumPoints_DoubleCircles = 0;
         mFlgAutoNodeDeletion = false;
         createNet_Circular(12, 6);
         mSelectedNode = 0;
 
         break;
     case '3':
+        mNumPoints_DoubleCircles = 0;
         mFlgAutoNodeDeletion = false;
-        createNet_Square(15, 4);
+        createNet_Square(14, 5);
         mSelectedNode = 0;
 
         break;
     case '4':
+        mNumPoints_DoubleCircles = 0;
         mFlgAutoNodeDeletion = false;
         createNet_RadicalCircular(24);
         mSelectedNode = 0;
@@ -876,16 +880,18 @@ void GRAPH_SYSTEM::handleKeyPressedEvent( unsigned char key )
         mSelectedNode = 0;
         break;
     case '<':
+        if (mNumPoints_DoubleCircles < 3 || mNumPoints_DoubleCircles >36) return;
         mNumPoints_DoubleCircles--;
-        if (mNumPoints_DoubleCircles<3) 
+        if (mNumPoints_DoubleCircles < 3)
             mNumPoints_DoubleCircles = 3;
         mFlgAutoNodeDeletion = false;
         createRandomGraph_DoubleCircles(mNumPoints_DoubleCircles);
         mSelectedNode = 0;
         break;
     case '>':
+        if (mNumPoints_DoubleCircles < 3 || mNumPoints_DoubleCircles >36) return;
         mNumPoints_DoubleCircles++;
-        if (mNumPoints_DoubleCircles> 36) 
+        if (mNumPoints_DoubleCircles > 36)
             mNumPoints_DoubleCircles = 36;
         mFlgAutoNodeDeletion = false;
         createRandomGraph_DoubleCircles(mNumPoints_DoubleCircles);
@@ -905,6 +911,7 @@ void GRAPH_SYSTEM::handleKeyPressedEvent( unsigned char key )
         break;
     }
 }
+
 
 void GRAPH_SYSTEM::handlePassiveMouseEvent( double x, double z )
 {
