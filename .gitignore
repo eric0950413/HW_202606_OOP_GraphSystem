@@ -1,0 +1,25 @@
+# Visual Studio
+.vs/
+.vscode/
+ipch/
+*.suo
+*.user
+*.ncb
+*.sdf
+*.VC.db
+
+# Build outputs
+Debug/
+Release/
+bin/
+obj/
+release/
+
+# Executables
+*.exe
+*.out
+
+# Logs / temp
+*.log
+UpgradeLog.XML
+_UpgradeReport_Files/
