@@ -341,12 +341,27 @@ void GRAPH_SYSTEM::createNet_RadicalCircular( int n ) {
 //
 int GRAPH_SYSTEM::addNode( float x, float y, float z, float r )
 {
-    //GRAPH_NODE *g;
-    //g = getFreeNode( );
-    //
+    //-------------------------------------------------------
     // modify and add your code heres
-    //
-    return -1;
+    GRAPH_NODE* newNode;
+    newNode = getFreeNode();
+
+    if (newNode == nullptr) {
+        cout << "invalid addNode" << endl;
+        return -1;
+    }
+
+    newNode->visited = false;
+    newNode->depth = 0.0;
+    newNode->path_cost = 0.0;
+    newNode->edgeID.clear();
+    newNode->path_parent = nullptr;
+
+    newNode->p = vector3(x, y, z);
+    newNode->r = r;
+
+    return newNode->id;
+    //-------------------------------------------------------
 }
 
 //
@@ -355,13 +370,29 @@ int GRAPH_SYSTEM::addNode( float x, float y, float z, float r )
 //
 int GRAPH_SYSTEM::addEdge( int nodeID_0, int nodeID_1 )
 {
-    //GRAPH_EDGE *e;
-    //e = getFreeEdge( );
-    //
+    //-------------------------------------------------------
     // modify and add your code heres
-    //
+    if (nodeID_0 < 0 || nodeID_1 < 0 || nodeID_0 == nodeID_1) {
+        cout << "invalid addEdge" << endl;
+        return -1;
+    }
 
-    return -1;
+    GRAPH_EDGE* newEdge;
+    newEdge = getFreeEdge();
+
+    if (newEdge == nullptr) {
+        cout << "invalid addEdge" << endl;
+        return -1;
+    }
+
+    newEdge->nodeID[0] = nodeID_0;
+    newEdge->nodeID[1] = nodeID_1;
+
+    mNodeArr_Pool[nodeID_0].edgeID.push_back(newEdge->id);
+    mNodeArr_Pool[nodeID_1].edgeID.push_back(newEdge->id);
+
+    return newEdge->id;
+    //-------------------------------------------------------
 }
 
 void GRAPH_SYSTEM::askForInput( )
@@ -389,11 +420,24 @@ void GRAPH_SYSTEM::askForInput( )
 
 GRAPH_NODE *GRAPH_SYSTEM::findNearestNode( double x, double z, double &cur_distance2 ) const
 {
-    GRAPH_NODE *n = nullptr;
-    //cur_distance2 = -1.0;
-    //
+    GRAPH_NODE* n = nullptr;
+    cur_distance2 = DBL_MAX;
+    //-------------------------------------------------------
     // modify and add your code heres
-    //
+    for (int i = 0; i < mCurNumOfActiveNodes; i++) {
+        int nodeID = mActiveNodeArr[i];
+        GRAPH_NODE* curNode = &mNodeArr_Pool[nodeID];
+
+        float dx = curNode->p.x - x;
+        float dz = curNode->p.z - z;
+        float curNodeDis = pow(dx, 2) + pow(dz, 2);
+
+        if (curNodeDis < cur_distance2) {
+            n = curNode;
+            cur_distance2 = curNodeDis;
+        }
+    }
+    //-------------------------------------------------------
     return n;
 }
 
@@ -459,46 +503,114 @@ void GRAPH_SYSTEM::performOperation(GRAPH_NODE* node) {
 
 void GRAPH_SYSTEM::deleteEdge( int edgeID )
 {
-    //GRAPH_EDGE *e = &mEdgeArr_Pool[ edgeID ];
-    //int dynamicID = e->dynamicID;
-
-    //
+    //-------------------------------------------------------
     // modify and add your code heres
-    //
+    if (mCurNumOfActiveEdges <= 0) return;
+    if (edgeID < 0 || edgeID >= mMaxNumEdges) return;
 
+    GRAPH_EDGE* deletingEdge = &mEdgeArr_Pool[edgeID];
+    int dynamicID = deletingEdge->dynamicID;
+
+    if (mActiveEdgeArr[deletingEdge->dynamicID] != edgeID) return;
+
+    --mCurNumOfActiveEdges;
+    mActiveEdgeArr[dynamicID] = mActiveEdgeArr[mCurNumOfActiveEdges];
+
+    int movedEdgeID = mActiveEdgeArr[dynamicID];
+    mEdgeArr_Pool[movedEdgeID].dynamicID = dynamicID;
+
+    mFreeEdgeArr[mCurNumOfFreeEdges] = deletingEdge->id;
+    ++mCurNumOfFreeEdges;
+
+    removeEdgeFromNode(deletingEdge, deletingEdge->nodeID[0]);
+    removeEdgeFromNode(deletingEdge, deletingEdge->nodeID[1]);
+
+    deletingEdge->nodeID[0] = -1;
+    deletingEdge->nodeID[1] = -1;
+
+    return;
+    //-------------------------------------------------------
 }
 
 void GRAPH_SYSTEM::removeEdgeFromNode( const GRAPH_EDGE *e, int nodeID )
 {
-    //GRAPH_NODE *n = &mNodeArr_Pool[ nodeID ];
-    //
+    //-------------------------------------------------------
     // modify and add your code heres
-    //
+    for (int i = 0; i < mNodeArr_Pool[nodeID].edgeID.size(); i++) {
+        if (mNodeArr_Pool[nodeID].edgeID[i] == e->id) {
+            mNodeArr_Pool[nodeID].edgeID.erase(mNodeArr_Pool[nodeID].edgeID.begin() + i);
+            break;
+        }
+    }
 
+    return;
+    //-------------------------------------------------------
 }
 void GRAPH_SYSTEM::deleteEdgesOfNode( int nodeID )
 {
-   // GRAPH_NODE *n  = &mNodeArr_Pool[ nodeID ];
-    //
+    //-------------------------------------------------------
     // modify and add your code heres
-    //
+    GRAPH_NODE* n = &mNodeArr_Pool[nodeID];
 
+    for (int i = mCurNumOfActiveEdges - 1; i >= 0; i--) {
+        GRAPH_EDGE curEdge = mEdgeArr_Pool[mActiveEdgeArr[i]];
+        if (curEdge.nodeID[0] == nodeID || curEdge.nodeID[1] == nodeID) {
+            deleteEdge(curEdge.id);
+        }
+    }
+
+    return;
+    //-------------------------------------------------------
 }
 
 void GRAPH_SYSTEM::deleteNode( int nodeID ) {
+
+    //
     //if ( mCurNumOfActiveNodes <= 0 ) return;
     //GRAPH_NODE *n = &mNodeArr_Pool[ nodeID ];
     //
-    // modify and add your code heres
-    //
 
+    //-------------------------------------------------------
+    // modify and add your code heres
+    if (mCurNumOfActiveNodes <= 0) return;
+    if (nodeID < 0 || nodeID >= mMaxNumNodes) return;
+
+    if (mSelectedNode && mSelectedNode->id == nodeID) mSelectedNode = nullptr;
+    if (mPassiveSelectedNode && mPassiveSelectedNode->id == nodeID) mPassiveSelectedNode = nullptr;
+
+    deleteEdgesOfNode(nodeID);
+
+    GRAPH_NODE* deletingNode = &mNodeArr_Pool[nodeID];
+    int dynamicID = deletingNode->dynamicID;
+
+    if (mActiveNodeArr[deletingNode->dynamicID] != nodeID) return;
+
+    --mCurNumOfActiveNodes;
+    mActiveNodeArr[dynamicID] = mActiveNodeArr[mCurNumOfActiveNodes];
+
+    int movedNodeID = mActiveNodeArr[dynamicID];
+    mNodeArr_Pool[movedNodeID].dynamicID = dynamicID;
+
+    mFreeNodeArr[mCurNumOfFreeNodes] = deletingNode->id;
+    ++mCurNumOfFreeNodes;
+
+    return;
+    //-------------------------------------------------------
 }
 
 void GRAPH_SYSTEM::deleteSelectedNode(  ) {
-    if ( mSelectedNode == 0 ) return;
-    //
+    if (mSelectedNode == 0) return;
+    //-------------------------------------------------------
     // modify and add your code heres
-    //
+    if (mPassiveSelectedNode == mSelectedNode) {
+        mPassiveSelectedNode = 0;
+    }
+
+    deleteNode(mSelectedNode->id);
+    mSelectedNode = 0;
+
+    return;
+    //-------------------------------------------------------
 }
 
 bool GRAPH_SYSTEM::isSelectedNode( ) const
