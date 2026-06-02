@@ -757,62 +757,82 @@ float GRAPH_SYSTEM::getNodeDepthFromSelectedNode(int nodeIndex) const
 
 void GRAPH_SYSTEM::resetPathInformationOfAllNodes()
 {
-    //
+    //-------------------------------------------------------
     // modify and add your code heres
     // 
 
     int numNodes = getNumOfNodes();
     for (int i = 0; i < numNodes; ++i) {
-        int nodeID = mActiveNodeArr[i];
-        GRAPH_NODE* n = &mNodeArr_Pool[nodeID];
-        //
-        // modify and add your code heres
-        //
         // set path cost of node
         // set path_parent of node
+        int nodeID = mActiveNodeArr[i];
+        GRAPH_NODE* n = &mNodeArr_Pool[nodeID];
+        n->path_cost = DBL_MAX;
+        n->path_parent = nullptr;
     }
+    //-------------------------------------------------------
 }
 
 void GRAPH_SYSTEM::computeShortestPath(GRAPH_NODE *node)
 {
-    if (node == 0) return;
     //
+    // get an edge
+    // determine the next node. Set it as the current node.
+    // compute distance d: node->p.distance(next->p);
+    // if new path cost is not better, check for the other edges
+    // if new path cost is better, update the node's path cost and path_parent
+    // Also, invokte computeShortestPath for the current node.
+    // int edgeID = node->edgeID[i];
+    // GRAPH_EDGE* e = &mEdgeArr_Pool[edgeID];
+    // GRAPH_NODE* n0 = &mNodeArr_Pool[e->nodeID[0]];
+    // GRAPH_NODE* n1 = &mNodeArr_Pool[e->nodeID[1]];
+    // 
+
+    //-------------------------------------------------------
     // modify and add your code heres
-    //    
+    if (node == nullptr) return;
+    if (node->path_cost == DBL_MAX) return;
 
-
-    // for each edge incident to node, node 
-    // DO
     for (int i = 0; i < node->edgeID.size(); ++i) {
-        //
-        // modify and add your code heres
-        //
-        // get an edge
-        // determine the next node. Set it as the current node.
-        // compute distance d: node->p.distance(next->p);
-        // if new path cost is not better, check for the other edges
-        // if new path cost is better, update the node's path cost and path_parent
-        // Also, invokte computeShortestPath for the current node.
-        //int edgeID = node->edgeID[i];
-        //GRAPH_EDGE* e = &mEdgeArr_Pool[edgeID];
+        GRAPH_EDGE* edge;
+        int edge_id = node->edgeID[i];
+        edge = &mEdgeArr_Pool[edge_id];
 
-        //GRAPH_NODE* n0 = &mNodeArr_Pool[e->nodeID[0]];
-        //GRAPH_NODE* n1 = &mNodeArr_Pool[e->nodeID[1]];
-        //
-        // modify and add your code heres
-        //
+        GRAPH_NODE* edgeNode;
+        if (edge->nodeID[0] != node->id) edgeNode = &mNodeArr_Pool[edge->nodeID[0]];
+        else edgeNode = &mNodeArr_Pool[edge->nodeID[1]];
+
+        double w = node->p.distance(edgeNode->p);
+        double newCost = node->path_cost + w;
+
+        if (newCost < edgeNode->path_cost) {
+            edgeNode->path_cost = newCost;
+            edgeNode->path_parent = node;
+
+            computeShortestPath(edgeNode);
+        }
     }
+    //-------------------------------------------------------
 }
 
 void GRAPH_SYSTEM::computeShortestPath()
 {
     //
-    // modify and add your code heres
-    //
     // reset path information of all nodes
     // if mStartNode == nullptr || mDestinationNode == nullptr, return
     // invokte computeShortestPath with mStartNode
     //
+
+    //-------------------------------------------------------
+    // modify and add your code heres
+    resetPathInformationOfAllNodes();
+    if (mStartNode == nullptr || mDestinationNode == nullptr) return;
+
+    mStartNode->path_cost = 0.0;
+    mStartNode->path_parent = nullptr;
+
+    computeShortestPath(mStartNode);
+    //-------------------------------------------------------
 }
 
 void GRAPH_SYSTEM::handleKeyPressedEvent( unsigned char key )
