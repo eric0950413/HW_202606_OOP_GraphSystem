@@ -50,9 +50,12 @@ GRAPH_SYSTEM::GRAPH_SYSTEM( )
 
     initMemoryPool();
     createDefaultGraph();
-    //
-    // modify and add your code heres
-    //
+
+    //-------------------------------------------------------
+    // modify and add your code
+    resetDepthOfAllNodes();
+    resetPathInformationOfAllNodes();
+    //-------------------------------------------------------
 }
 
 void GRAPH_SYSTEM::initMemoryPool( )
@@ -970,12 +973,16 @@ void GRAPH_SYSTEM::update( )
     }
     Sleep(250);
 
-    //
-    // modify and add your code
     // 
     // delete the selected node?
     // delete all the edges incident to the selected node?
     //
+
+    //-------------------------------------------------------
+    // modify and add your code
+    int nodeID = mActiveNodeArr[mCurNumOfActiveNodes - 1];
+    deleteNode(nodeID);
+    //-------------------------------------------------------
 
     mSelectedNode = 0;
     mPassiveSelectedNode = 0;
